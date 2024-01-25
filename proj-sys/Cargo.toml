@@ -12,6 +12,7 @@ links = "proj"
 rust-version = "1.70"
 
 [dependencies]
+libsqlite3-sys = { version = "0.27", features = ["bundled"], optional = true }
 
 [build-dependencies]
 bindgen = "0.68.1"
@@ -22,7 +23,7 @@ tar = "0.4.40"
 
 [features]
 nobuild = []
-bundled_proj = []
+bundled_proj = ["dep:libsqlite3-sys"]
 # `pkg_config` feature is deprecated and does nothing
 pkg_config = []
 network = ["tiff"]

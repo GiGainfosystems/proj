@@ -98,6 +98,14 @@ fn build_from_source() -> Result<std::path::PathBuf, Box<dyn std::error::Error>>
     config.define("BUILD_PROJINFO", "OFF");
     config.define("BUILD_PROJSYNC", "OFF");
     config.define("ENABLE_CURL", "OFF");
+    config.define(
+        "SQLITE3_INCLUDE_DIR",
+        std::env::var("DEP_SQLITE3_INCLUDE").expect("This is set by libsqlite3-sys"),
+    );
+    config.define(
+        "SQLITE3_LIBRARY",
+        format!("{}/libsqlite3.a", std::env::var("DEP_SQLITE3_LIB_DIR").unwrap()),
+    );
 
     if cfg!(feature = "tiff") {
         eprintln!("enabling tiff support");
@@ -131,9 +139,6 @@ fn build_from_source() -> Result<std::path::PathBuf, Box<dyn std::error::Error>>
         "cargo:rustc-link-search={}",
         &out_path.join("build/lib").display()
     );
-
-    // The PROJ library needs SQLite and the C++ standard library.
-    println!("cargo:rustc-link-lib=dylib=sqlite3");
 
     if cfg!(feature = "tiff") {
         // On platforms like apples aarch64, users are likely to have installed libtiff with homebrew,

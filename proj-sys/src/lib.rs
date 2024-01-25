@@ -28,6 +28,9 @@
 //! implement your own set of callbacks if you wish to make use of them (see the
 //! [`proj`](https://crates.io/crates/proj) crate for an example).
 
+#[cfg(feature = "bundled_proj")]
+extern crate libsqlite3_sys;
+
 #[cfg(not(feature = "nobuild"))]
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
