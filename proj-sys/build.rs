@@ -46,6 +46,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         })?
     };
 
+    #[cfg(feature = "buildtime_bindgen")]
+    generate_bindings(include_path)?;
+    #[cfg(not(feature = "buildtime_bindgen"))]
+    let _ = include_path;
+
+    Ok(())
+}
+
+#[cfg(feature = "buildtime_bindgen")]
+fn generate_bindings(include_path: std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
     // the resulting bindings.
@@ -65,7 +75,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Write the bindings to the $OUT_DIR/bindings.rs file.
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     bindings.write_to_file(out_path.join("bindings.rs"))?;
-
     Ok(())
 }
 
@@ -104,7 +113,10 @@ fn build_from_source() -> Result<std::path::PathBuf, Box<dyn std::error::Error>>
     );
     config.define(
         "SQLITE3_LIBRARY",
-        format!("{}/libsqlite3.a", std::env::var("DEP_SQLITE3_LIB_DIR").unwrap()),
+        format!(
+            "{}/libsqlite3.a",
+            std::env::var("DEP_SQLITE3_LIB_DIR").unwrap()
+        ),
     );
 
     if cfg!(feature = "tiff") {
