@@ -129,6 +129,7 @@ fn build_from_source() -> Result<std::path::PathBuf, Box<dyn std::error::Error>>
 
     if cfg!(target_env = "msvc") {
         config.profile("Release");
+        config.define("PROJ_DLL", "");
     }
 
     let proj = config.build();
