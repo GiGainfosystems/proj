@@ -75,12 +75,14 @@ fn generate_bindings(include_path: std::path::PathBuf) -> Result<(), Box<dyn std
     // Write the bindings to the $OUT_DIR/bindings.rs file.
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     bindings.write_to_file(out_path.join("bindings.rs"))?;
+
     Ok(())
 }
 
 // returns the path of "include" for the built proj
 fn build_from_source() -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
     eprintln!("building libproj from source");
+    println!("cargo:rustc-cfg=bundled_build");
     if let Ok(val) = &env::var("_PROJ_SYS_TEST_EXPECT_BUILD_FROM_SRC") {
         if val == "0" {
             panic!(
@@ -89,7 +91,6 @@ fn build_from_source() -> Result<std::path::PathBuf, Box<dyn std::error::Error>>
         }
     }
 
-    // NOTE: The PROJ build expects Sqlite3 to be present on the system.
     let path = "PROJSRC/proj-9.3.1.tar.gz";
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
     let tar_gz = File::open(path)?;
@@ -107,17 +108,12 @@ fn build_from_source() -> Result<std::path::PathBuf, Box<dyn std::error::Error>>
     config.define("BUILD_PROJINFO", "OFF");
     config.define("BUILD_PROJSYNC", "OFF");
     config.define("ENABLE_CURL", "OFF");
-    config.define(
-        "SQLITE3_INCLUDE_DIR",
-        std::env::var("DEP_SQLITE3_INCLUDE").expect("This is set by libsqlite3-sys"),
-    );
-    config.define(
-        "SQLITE3_LIBRARY",
-        format!(
-            "{}/libsqlite3.a",
-            std::env::var("DEP_SQLITE3_LIB_DIR").unwrap()
-        ),
-    );
+    if let Ok(sqlite_include) = std::env::var("DEP_SQLITE3_INCLUDE") {
+        config.define("SQLITE3_INCLUDE_DIR", sqlite_include);
+    }
+    if let Ok(sqlite_lib_dir) = std::env::var("DEP_SQLITE3_LIB_DIR") {
+        config.define("SQLITE3_LIBRARY", format!("{sqlite_lib_dir}/libsqlite3.a",));
+    }
 
     if cfg!(feature = "tiff") {
         eprintln!("enabling tiff support");
