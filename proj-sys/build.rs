@@ -124,8 +124,12 @@ fn build_from_source() -> Result<std::path::PathBuf, Box<dyn std::error::Error>>
     }
 
     if cfg!(target_env = "msvc") {
-        config.profile("Release");
         config.cxxflag("-DPROJ_DLL=");
+        if std::env::var("PROFILE").as_deref() == Ok("debug") {
+            config.define("CMAKE_MSVC_RUNTIME_LIBRARY", "MultiThreadedDebugDLL");
+        } else {
+            config.define("CMAKE_MSVC_RUNTIME_LIBRARY", "MultiThreadedDLL");
+        }
     }
 
     let proj = config.build();
