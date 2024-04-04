@@ -131,6 +131,13 @@ fn build_from_source() -> Result<std::path::PathBuf, Box<dyn std::error::Error>>
         config.define("ENABLE_TIFF", "OFF");
     }
 
+    if cfg!(target_env = "msvc") {
+        // otherwise there are linking issues
+        // because rust always links the
+        // MSVC release runtime
+        config.profile("Release");
+    }
+
     let proj = config.build();
     // Tell cargo to tell rustc to link libproj, and where to find it
     // libproj will be built in $OUT_DIR/lib
